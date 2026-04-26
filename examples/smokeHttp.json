@@ -1,0 +1,19 @@
+{
+    "_comment": "Per-environment variables for HTTP smoke tests. The dev profile targets the bundled examples/dev-server (started with `composer dev-server`).",
+
+    "dev": {
+        "APP_BASE_URL": "http://127.0.0.1:8080",
+        "API_BASE_URL": "http://127.0.0.1:8080/api",
+        "API_BEARER_TOKEN": "Bearer dev-test-token"
+    },
+    "staging": {
+        "APP_BASE_URL": "https://staging.example.com",
+        "API_BASE_URL": "https://staging.example.com/api",
+        "API_BEARER_TOKEN": "Bearer <staging-token>"
+    },
+    "prod": {
+        "APP_BASE_URL": "https://example.com",
+        "API_BASE_URL": "https://example.com/api",
+        "API_BEARER_TOKEN": "Bearer <prod-token>"
+    }
+}

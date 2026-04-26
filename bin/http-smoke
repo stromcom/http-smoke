@@ -1,0 +1,41 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Stromcom\HttpSmoke\Console\RunCommand;
+
+if (PHP_VERSION_ID < 80400) {
+    fwrite(STDERR, "http-smoke requires PHP >= 8.4\n");
+    exit(2);
+}
+
+if (!extension_loaded('curl')) {
+    fwrite(STDERR, "http-smoke requires ext-curl\n");
+    exit(2);
+}
+
+$autoloads = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../autoload.php',
+    __DIR__ . '/../../autoload.php',
+];
+
+$autoload = null;
+foreach ($autoloads as $candidate) {
+    if (is_file($candidate)) {
+        $autoload = $candidate;
+        break;
+    }
+}
+
+if ($autoload === null) {
+    fwrite(STDERR, "Composer autoload not found. Run `composer install` first.\n");
+    exit(2);
+}
+
+require $autoload;
+
+$projectRoot = getcwd() ?: __DIR__;
+$exitCode = (new RunCommand())->execute($argv, $projectRoot);
+exit($exitCode->value);
