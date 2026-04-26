@@ -26,10 +26,35 @@ final class JsonDotPathTest extends TestCase
     #[TestWith(['data.items[0].name', self::DATA['data']['items'][0]['name']])]
     #[TestWith(['data.items[1].name', self::DATA['data']['items'][1]['name']])]
     #[TestWith(['data.items[0].tags[1]', self::DATA['data']['items'][0]['tags'][1]])]
+    #[TestWith(['data.items[first()].name', self::DATA['data']['items'][0]['name']])]
+    #[TestWith(['data.items[last()].name', self::DATA['data']['items'][1]['name']])]
     public function get_resolves_dot_and_bracket_paths(string $path, mixed $expected): void
     {
         self::assertSame($expected, JsonDotPath::get(self::DATA, $path));
         self::assertTrue(JsonDotPath::exists(self::DATA, $path));
+    }
+
+    #[Test]
+    #[TestWith(['data.items[rand()].name'])]
+    #[TestWith(['data.items[random()].name'])]
+    public function get_resolves_random_index_to_existing_array_value(string $path): void
+    {
+        $names = array_column(self::DATA['data']['items'], 'name');
+
+        for ($i = 0; $i < 20; ++$i) {
+            self::assertContains(JsonDotPath::get(self::DATA, $path), $names);
+            self::assertTrue(JsonDotPath::exists(self::DATA, $path));
+        }
+    }
+
+    #[Test]
+    #[TestWith(['items[first()]'])]
+    #[TestWith(['items[last()]'])]
+    #[TestWith(['items[rand()]'])]
+    public function index_functions_return_missing_for_empty_array(string $path): void
+    {
+        self::assertNull(JsonDotPath::get(['items' => []], $path));
+        self::assertFalse(JsonDotPath::exists(['items' => []], $path));
     }
 
     #[Test]
@@ -49,6 +74,8 @@ final class JsonDotPathTest extends TestCase
     #[TestWith(['data..items'])]
     #[TestWith(['data.items[]'])]
     #[TestWith(['data.items[abc]'])]
+    #[TestWith(['data.items[first]'])]
+    #[TestWith(['data.items[unknown()]'])]
     #[TestWith(['data.items[0'])]
     public function malformed_paths_are_treated_as_missing(string $path): void
     {

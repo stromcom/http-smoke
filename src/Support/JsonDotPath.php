@@ -11,20 +11,7 @@ final class JsonDotPath
      */
     public static function exists(array $data, string $path): bool
     {
-        $tokens = self::tokenize($path);
-        if ($tokens === null) {
-            return false;
-        }
-
-        $current = $data;
-        foreach ($tokens as $key) {
-            if (!is_array($current) || !array_key_exists($key, $current)) {
-                return false;
-            }
-            $current = $current[$key];
-        }
-
-        return true;
+        return self::traverse($data, $path, $found) && $found;
     }
 
     /**
@@ -32,20 +19,56 @@ final class JsonDotPath
      */
     public static function get(array $data, string $path): mixed
     {
-        $tokens = self::tokenize($path);
-        if ($tokens === null) {
+        if (!self::traverse($data, $path, $found, $value)) {
             return null;
         }
 
+        return $found ? $value : null;
+    }
+
+    /**
+     * @param array<array-key, mixed> $data
+     */
+    private static function traverse(array $data, string $path, ?bool &$found = null, mixed &$value = null): bool
+    {
+        $found = false;
+        $value = null;
+
+        $tokens = self::tokenize($path);
+        if ($tokens === null) {
+            return false;
+        }
+
         $current = $data;
-        foreach ($tokens as $key) {
-            if (!is_array($current) || !array_key_exists($key, $current)) {
-                return null;
+        foreach ($tokens as $token) {
+            if (!is_array($current)) {
+                return true;
             }
+
+            if ($token instanceof JsonDotPathFunction) {
+                if ($current === []) {
+                    return true;
+                }
+                $keys = array_keys($current);
+                $key = match ($token) {
+                    JsonDotPathFunction::First => $keys[0],
+                    JsonDotPathFunction::Last => $keys[count($keys) - 1],
+                    JsonDotPathFunction::Random => $keys[array_rand($keys)],
+                };
+            } else {
+                if (!array_key_exists($token, $current)) {
+                    return true;
+                }
+                $key = $token;
+            }
+
             $current = $current[$key];
         }
 
-        return $current;
+        $found = true;
+        $value = $current;
+
+        return true;
     }
 
     /**
@@ -59,7 +82,7 @@ final class JsonDotPath
     }
 
     /**
-     * @return list<string|int>|null
+     * @return list<string|int|JsonDotPathFunction>|null
      */
     private static function tokenize(string $path): ?array
     {
@@ -81,10 +104,23 @@ final class JsonDotPath
                     return null;
                 }
                 $inner = substr($path, $offset + 1, $end - $offset - 1);
-                if ($inner === '' || !ctype_digit($inner)) {
+                if ($inner === '') {
                     return null;
                 }
-                $tokens[] = (int) $inner;
+                if (ctype_digit($inner)) {
+                    $tokens[] = (int) $inner;
+                } else {
+                    $function = match ($inner) {
+                        'first()' => JsonDotPathFunction::First,
+                        'last()' => JsonDotPathFunction::Last,
+                        'rand()', 'random()' => JsonDotPathFunction::Random,
+                        default => null,
+                    };
+                    if ($function === null) {
+                        return null;
+                    }
+                    $tokens[] = $function;
+                }
                 $offset = $end + 1;
                 $expectKey = false;
                 continue;
