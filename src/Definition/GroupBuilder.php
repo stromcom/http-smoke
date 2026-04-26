@@ -76,6 +76,11 @@ final class GroupBuilder
         return $this;
     }
 
+    public function defaultRetries(int $count, int $delayMs = 50): self
+    {
+        return $this->defaultRetryOnFailure($count, $delayMs);
+    }
+
     public function defaultRetryOnFailure(int $attempts, int $delayMs = 50): self
     {
         $this->groupRetryOnFailure = max(0, $attempts);
@@ -164,7 +169,7 @@ final class GroupBuilder
     public function expectRedirect(string $url): self
     {
         $pending = $this->requirePending();
-        $pending->expectedRedirectUrl = $url;
+        $pending->expectedRedirectUrl = $this->resolveUrl($url);
         $pending->expectedStatus = 302;
 
         return $this;
@@ -208,6 +213,22 @@ final class GroupBuilder
         $pending = $this->requirePending();
         $pending->expectJson = true;
         $pending->jsonPathValues[$path] = $value;
+
+        return $this;
+    }
+
+    public function expectHtmlElement(
+        string $tag,
+        ?string $text = null,
+        ?string $attribute = null,
+        ?string $attributeValue = null,
+    ): self {
+        $this->requirePending()->htmlElements[] = [
+            'tag' => $tag,
+            'text' => $text,
+            'attribute' => $attribute,
+            'attributeValue' => $attributeValue,
+        ];
 
         return $this;
     }

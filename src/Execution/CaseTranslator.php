@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Stromcom\HttpSmoke\Execution;
 
+use Stromcom\HttpSmoke\Assertion\AssertionInterface;
+use Stromcom\HttpSmoke\Assertion\ResolvableAssertion;
 use Stromcom\HttpSmoke\Capture\CaptureStore;
 use Stromcom\HttpSmoke\Definition\TestCase;
 use Stromcom\HttpSmoke\Http\Request;
@@ -40,5 +42,20 @@ final readonly class CaseTranslator
             insecureTls: $this->insecureTls,
             userAgent: $this->userAgent,
         );
+    }
+
+    /**
+     * @return list<AssertionInterface>
+     */
+    public function resolveAssertions(TestCase $case): array
+    {
+        $resolved = [];
+        foreach ($case->assertions as $assertion) {
+            $resolved[] = $assertion instanceof ResolvableAssertion
+                ? $assertion->withResolver($this->variables)
+                : $assertion;
+        }
+
+        return $resolved;
     }
 }

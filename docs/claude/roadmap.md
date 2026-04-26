@@ -19,27 +19,26 @@ arrival.
 
 ## Known limitations
 
-### Variable / capture substitution doesn't reach assertion arguments
-Today: `{KEY}` and `{@name}` placeholders are substituted by `CaseTranslator`
-when building the `Request` (URL, body, headers). They are **NOT** substituted
-inside `expectJsonPath()`, `expectContains()`, etc., because assertion objects
-own their args at definition time and the runner just calls `evaluate(Response)`
-on them.
+### Variable / capture substitution in assertion arguments — partially solved
+Assertions can now opt into `{KEY}` resolution by implementing
+`Assertion\ResolvableAssertion` (`withResolver(VariableResolver): self`).
+`CaseTranslator::resolveAssertions()` rebuilds them right before evaluation, so
+the runner sees fully-resolved args.
 
-Workarounds in the wild:
-- Use `expect(Closure)` for dynamic checks based on captured state.
-- For `expectRedirect()`, this was already addressed: the assertion compares by
-  path component, so passing relative paths (`/login`) works regardless of base
-  URL. (Fixed during initial build — `expectRedirect()` used to prepend
-  `baseUrl()`, which broke `{APP_BASE_URL}` substitution.)
+Status today:
+- `RedirectAssertion` implements it — `expectRedirect('{APP_BASE_URL}/login')`
+  works.
+- Most other assertions (`JsonPath`, `Contains`, `HeaderContains`, `HtmlElement`,
+  …) still own raw args. Adding `ResolvableAssertion` to them is mechanical: take
+  a `VariableResolver`, call `resolve()` on each string field, return a new
+  instance.
+- `{@capture}` substitution still doesn't reach assertions — `CaptureStore` isn't
+  threaded into the resolution path. Likely follow-up: a parallel
+  `CaptureAwareAssertion` interface, or fold both into one
+  `withContext(VariableResolver, CaptureStore)` method.
 
-A clean fix would be either:
-1. Threading `VariableResolver`/`CaptureStore` into assertions at evaluate time
-   (couples assertions to those services), or
-2. Having `CaseTranslator` rebuild assertions with substituted args (assertions
-   need a `with*()` API).
-
-Not urgent for 1.0 — flagged here so future work doesn't get blindsided.
+Workaround until everything is covered: `expect(Closure)` for dynamic checks
+based on captured state.
 
 ### `original/` cleanup
 Per user preference, the `original/` reference dump stays until the first

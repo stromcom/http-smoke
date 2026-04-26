@@ -5,18 +5,15 @@ Common things you'll do in this repo and the exact commands.
 ## Quality checks (run before declaring done)
 
 ```bash
-composer stan      # PHPStan level max — must show "[OK] No errors"
+composer phpstan   # PHPStan level max — must show "[OK] No errors"
 composer cs        # PHP-CS-Fixer dry-run — clean if "files":[]
 composer cs:fix    # apply CS-Fixer changes
 composer test      # PHPUnit (unit + integration) — auto-starts a built-in server for integration tests
-composer ci        # all three in sequence
+composer phpunit   # alias for "composer test"
+composer ci        # cs + phpstan + test in sequence
 ```
 
-PHPStan needs a higher memory limit on Windows; the script handles it. If
-running directly: `vendor/bin/phpstan analyse --memory-limit=512M`.
-
-On Windows, prefer `php vendor/phpunit/phpunit/phpunit` over `vendor/bin/phpunit`
-— the `.bat` shim sometimes drops output in WSL/Git-Bash.
+**Always invoke checks via `composer <script>`**, not by reaching into `vendor/bin/...` directly. The composer scripts are the contract — they handle Windows shim quirks, memory limits, and any future flags.
 
 ## Running the bundled demo
 

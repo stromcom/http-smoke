@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace Stromcom\HttpSmoke\Assertion;
 
 use Stromcom\HttpSmoke\Http\Response;
+use Stromcom\HttpSmoke\Variable\VariableResolver;
 
-final readonly class RedirectAssertion implements AssertionInterface
+final readonly class RedirectAssertion implements AssertionInterface, ResolvableAssertion
 {
     public function __construct(
         public string $expectedUrl,
     ) {}
+
+    public function withResolver(VariableResolver $variables): self
+    {
+        return new self($variables->resolveUrl($this->expectedUrl));
+    }
 
     public function evaluate(Response $response): ?string
     {

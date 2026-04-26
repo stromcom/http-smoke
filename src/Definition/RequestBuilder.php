@@ -9,6 +9,7 @@ use Stromcom\HttpSmoke\Assertion\AssertionInterface;
 use Stromcom\HttpSmoke\Assertion\BodyContainsAssertion;
 use Stromcom\HttpSmoke\Assertion\CallbackAssertion;
 use Stromcom\HttpSmoke\Assertion\HeaderContainsAssertion;
+use Stromcom\HttpSmoke\Assertion\HtmlElementAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonHasKeysAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonPathAssertion;
@@ -71,6 +72,9 @@ final class RequestBuilder
 
     public ?Closure $callback = null;
 
+    /** @var list<array{tag: string, text: ?string, attribute: ?string, attributeValue: ?string}> */
+    public array $htmlElements = [];
+
     /** @var list<CaptureInterface> */
     public array $captures = [];
 
@@ -113,6 +117,15 @@ final class RequestBuilder
 
         if ($this->headerName !== null && $this->headerContains !== null) {
             $assertions[] = new HeaderContainsAssertion($this->headerName, $this->headerContains);
+        }
+
+        foreach ($this->htmlElements as $element) {
+            $assertions[] = new HtmlElementAssertion(
+                $element['tag'],
+                $element['text'],
+                $element['attribute'],
+                $element['attributeValue'],
+            );
         }
 
         if ($this->callback !== null) {

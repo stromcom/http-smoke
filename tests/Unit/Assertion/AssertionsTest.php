@@ -9,12 +9,15 @@ use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Stromcom\HttpSmoke\Assertion\BodyContainsAssertion;
 use Stromcom\HttpSmoke\Assertion\HeaderContainsAssertion;
+use Stromcom\HttpSmoke\Assertion\HtmlElementAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonHasKeysAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonPathAssertion;
 use Stromcom\HttpSmoke\Assertion\RedirectAssertion;
 use Stromcom\HttpSmoke\Assertion\StatusAssertion;
 use Stromcom\HttpSmoke\Http\Response;
+use Stromcom\HttpSmoke\Variable\Source\ArraySource;
+use Stromcom\HttpSmoke\Variable\VariableResolver;
 
 final class AssertionsTest extends TestCase
 {
@@ -144,6 +147,40 @@ final class AssertionsTest extends TestCase
         $error = $assertion->evaluate($response);
 
         self::assertErrorMatches($shouldPass, $error);
+    }
+
+    #[Test]
+    public function redirect_assertion_resolves_variable_placeholders_at_evaluate_time(): void
+    {
+        $variables = new VariableResolver();
+        $variables->addSource(new ArraySource(['DASHBOARD' => '/dashboard']));
+
+        $assertion = new RedirectAssertion('{DASHBOARD}')->withResolver($variables);
+
+        self::assertNull($assertion->evaluate(self::response(302, headers: ['location' => '/dashboard/'])));
+    }
+
+    #[Test]
+    public function html_element_assertion_finds_tag_with_attribute_and_text(): void
+    {
+        $body = '<!doctype html><html><body><h1 class="title">Hello</h1></body></html>';
+        $response = self::response(200, body: $body);
+
+        self::assertNull(new HtmlElementAssertion('h1')->evaluate($response));
+        self::assertNull(new HtmlElementAssertion('h1', 'Hello')->evaluate($response));
+        self::assertNull(new HtmlElementAssertion('h1', null, 'class', 'title')->evaluate($response));
+        self::assertNotNull(new HtmlElementAssertion('h2')->evaluate($response));
+        self::assertNotNull(new HtmlElementAssertion('h1', 'Goodbye')->evaluate($response));
+        self::assertNotNull(new HtmlElementAssertion('h1', null, 'class', 'wrong')->evaluate($response));
+    }
+
+    #[Test]
+    public function html_element_assertion_reports_empty_body(): void
+    {
+        $error = new HtmlElementAssertion('h1')->evaluate(self::response(200, body: ''));
+
+        self::assertNotNull($error);
+        self::assertStringContainsString('empty body', $error);
     }
 
     /**

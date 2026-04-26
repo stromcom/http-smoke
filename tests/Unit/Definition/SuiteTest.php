@@ -6,6 +6,7 @@ namespace Stromcom\HttpSmoke\Tests\Unit\Definition;
 
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
+use Stromcom\HttpSmoke\Assertion\HtmlElementAssertion;
 use Stromcom\HttpSmoke\Assertion\StatusAssertion;
 use Stromcom\HttpSmoke\Definition\Suite;
 use Stromcom\HttpSmoke\Http\Method;
@@ -61,6 +62,42 @@ final class SuiteTest extends TestCase
         self::assertNotNull($firstInSession->sessionId);
         self::assertSame($firstInSession->sessionId, $secondInSession->sessionId);
         self::assertNull($outsideSession->sessionId);
+    }
+
+    #[Test]
+    public function expect_html_element_attaches_html_element_assertion(): void
+    {
+        $suite = new Suite();
+        $suite->group('g')
+            ->get('/page')
+                ->expectStatus(200)
+                ->expectHtmlElement('h1', 'Welcome', 'class', 'title');
+
+        $case = $suite->getCasesByGroup()['g'][0];
+
+        $htmlAssertions = array_values(array_filter(
+            $case->assertions,
+            static fn($assertion): bool => $assertion instanceof HtmlElementAssertion,
+        ));
+        self::assertCount(1, $htmlAssertions);
+        self::assertSame('h1', $htmlAssertions[0]->tag);
+        self::assertSame('Welcome', $htmlAssertions[0]->text);
+        self::assertSame('class', $htmlAssertions[0]->attribute);
+        self::assertSame('title', $htmlAssertions[0]->attributeValue);
+    }
+
+    #[Test]
+    public function default_retries_is_alias_for_default_retry_on_failure(): void
+    {
+        $suite = new Suite();
+        $suite->group('g')
+            ->defaultRetries(4, 25)
+            ->get('/x')->expectStatus(200);
+
+        $case = $suite->getCasesByGroup()['g'][0];
+
+        self::assertSame(4, $case->retryOnFailure);
+        self::assertSame(25, $case->retryDelayMs);
     }
 
     #[Test]

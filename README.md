@@ -137,6 +137,7 @@ $suite->group('api.users', maxFailures: 3)
     ->header('X-Tenant', 'smoke')
     ->defaultTimeout(5)
     ->defaultRetryOnFailure(10, 50)              // up to 10 retries, 50 ms apart
+    // ->defaultRetries(10, 50)                  // shorter alias for the above
     ->defaultAsJson()
 
     // Sessions: shared cookie jar, sequential execution, fail-fast
@@ -162,6 +163,12 @@ $suite->group('api.users', maxFailures: 3)
         ->asJson(false)                          // raw body
         ->expectStatus(200)
 
+    ->get('/dashboard')
+        ->expectStatus(200)
+        ->expectHtmlElement('h1', 'Dashboard')         // <h1>Dashboard</h1>
+        ->expectHtmlElement('a', null, 'href', '/logout')
+        ->expectHtmlElement('meta', null, 'name', 'viewport')
+
     ->get('/health')
         ->expectHeaderContains('Cache-Control', 'no-store')
         ->expect(fn (Stromcom\HttpSmoke\Http\Response $r) =>
@@ -180,6 +187,7 @@ $suite->group('api.users', maxFailures: 3)
 | `expectJson()` | body must parse as JSON |
 | `expectJsonHasKeys(array)` | dot-notation paths must exist |
 | `expectJsonPath(string, mixed)` | dot-notation path equals value |
+| `expectHtmlElement(tag, text?, attribute?, attributeValue?)` | HTML body must contain a matching `<tag>` (optionally with given attribute / text) |
 | `expectHeaderContains(string, string)` | header value contains substring |
 | `expect(Closure)` | custom callback returning `null` on success or a failure message |
 

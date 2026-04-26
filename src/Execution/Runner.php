@@ -276,7 +276,7 @@ final class Runner
         }
 
         $found = $failures;
-        foreach ($case->assertions as $assertion) {
+        foreach ($this->translator->resolveAssertions($case) as $assertion) {
             $message = $assertion->evaluate($response);
             if ($message !== null) {
                 $found[] = $message;

@@ -42,7 +42,7 @@ jobs:
         run: composer cs
 
       - name: PHPStan
-        run: composer stan -- --memory-limit=512M
+        run: composer phpstan -- --memory-limit=512M
 
       - name: PHPUnit
         run: composer test

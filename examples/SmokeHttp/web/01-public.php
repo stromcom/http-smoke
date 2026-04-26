@@ -12,6 +12,8 @@ return static function (Suite $suite): void {
             ->label('GET / – HTML home, expect <title> and Cache-Control')
             ->expectStatus(200)
             ->expectContains('<title>Smoke Demo</title>')
+            ->expectHtmlElement('title', 'Smoke Demo')
+            ->expectHtmlElement('h1', 'Welcome')
             ->expectHeaderContains('Cache-Control', 'max-age')
 
         ->get('/robots.txt')

@@ -42,12 +42,13 @@
     ],
     "scripts": {
         "test": "phpunit",
-        "stan": "phpstan analyse",
+        "phpunit": "phpunit",
+        "phpstan": "phpstan analyse",
         "cs": "php-cs-fixer fix --dry-run --diff",
         "cs:fix": "php-cs-fixer fix",
         "ci": [
             "@cs",
-            "@stan",
+            "@phpstan",
             "@test"
         ],
         "dev-server": "@php examples/dev-server/reset-state.php && @php -S 127.0.0.1:8080 examples/dev-server/server.php",

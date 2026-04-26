@@ -40,7 +40,7 @@ CLI input  →  Console     →  Config        →  Discovery   →  Definition
 | Folder | Purpose |
 |---|---|
 | `Definition/` | Fluent DSL: `Suite`, `GroupBuilder`, `RequestBuilder`, immutable `TestCase`, `GroupConfig`. Builds the test plan; nothing here knows how requests are sent. |
-| `Assertion/` | `AssertionInterface` + concrete impls (Status, Json, JsonPath, JsonHasKeys, BodyContains, HeaderContains, Redirect, Callback). Each `evaluate(Response)` returns `null` (pass) or a failure message. |
+| `Assertion/` | `AssertionInterface` + concrete impls (Status, Json, JsonPath, JsonHasKeys, BodyContains, HeaderContains, Redirect, HtmlElement, Callback). Each `evaluate(Response)` returns `null` (pass) or a failure message. `ResolvableAssertion` is an opt-in sub-interface for assertions whose args contain `{KEY}` placeholders — `CaseTranslator::resolveAssertions()` rebuilds them with the runtime `VariableResolver` before `evaluate()` is called. |
 | `Capture/` | `CaptureInterface` (JsonPath, Header) + `CaptureStore` (runtime `{@name}` substitution). |
 | `Variable/` | `VariableResolver` + `VariableSourceInterface` (Array, EnvFile, JsonFile, Getenv). Layered, last-added-wins. Throws `VariableNotFoundException` for unresolved `{KEY}`. |
 | `Http/` | `HttpClientInterface` + immutable `Request`/`Response` VO + `Curl\CurlMultiClient` (default; parallel via `curl_multi_*`, single via `curl_exec`, cookie jar support). |
@@ -60,13 +60,13 @@ via `smoke.config.php` (`extraVariableSources[]`, `extraReporters[]`,
 
 - `Variable\VariableSourceInterface`
 - `Http\HttpClientInterface`
-- `Assertion\AssertionInterface`
+- `Assertion\AssertionInterface` (+ optional `ResolvableAssertion` for `{KEY}`-aware args)
 - `Capture\CaptureInterface`
 - `Reporting\ReporterInterface`
 
 ## Important runtime behaviour
 
-- **Variable substitution** (`{KEY}`) and **capture substitution** (`{@name}`) are applied **only to URL / body / headers** in `CaseTranslator`. They are **NOT** applied inside assertion arguments. Known limitation — see `roadmap.md`.
+- **Variable substitution** (`{KEY}`) and **capture substitution** (`{@name}`) are applied to URL / body / headers in `CaseTranslator`. Assertion args are resolved opt-in: assertions implementing `ResolvableAssertion` (e.g. `RedirectAssertion`) are rebuilt with the resolver via `CaseTranslator::resolveAssertions()` right before `evaluate()`. Assertions that don't implement it (most JSON / body / header assertions today) still own raw args — see `roadmap.md`.
 - **Session segmentation**: `Runner::segment()` walks consecutive cases with same `sessionId`, groups them as session segments. Session segments run sequentially with shared `tempnam()` cookie jar; non-session segments run in parallel chunks of `concurrency`.
 - **Retry**: `retryOnFailure(N, delayMs)` retries on ANY failure (assertion, network, 5xx). `retryOn5xx(N)` is a separate budget that only kicks in if `retryOnFailure === 0` and status >= 500. Both are tracked in `Result::$attempts` / `$totalDurationSeconds`.
 - **Circuit breaker**: each `GroupConfig::$maxFailures` — once exceeded within a group, remaining cases in that group are skipped with reason "Circuit breaker: …".
