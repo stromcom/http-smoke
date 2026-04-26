@@ -115,4 +115,4 @@ $config->configureContainer = function (Container $container): void {
 ```
 
 The default `CurlMultiClient` ships with the package and requires only
-`ext-curl`. A Guzzle adapter is planned for v1.1.
+`ext-curl`.

@@ -24,9 +24,6 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "friendsofphp/php-cs-fixer": "^3.64"
     },
-    "suggest": {
-        "guzzlehttp/guzzle": "Enables the GuzzleClient HTTP backend (planned for v1.1)."
-    },
     "autoload": {
         "psr-4": {
             "Stromcom\\HttpSmoke\\": "src/"

@@ -1,6 +1,6 @@
 # stromcom/http-smoke
 
-Professional, extensible HTTP smoke-testing toolkit for PHP 8.4+.
+Fast, simple and extensible HTTP smoke-testing toolkit for PHP 8.4+.
 
 A fluent DSL for declaring HTTP smoke tests, parallel execution, capture chains
 between requests, cookie-shared session flows, pluggable variable sources
@@ -31,7 +31,7 @@ vendor/bin/http-smoke dev
 - **Pluggable reporters** — console, JSON (canonical artefact), Markdown, GitHub
   step summary; add your own by implementing `ReporterInterface`.
 - **Pluggable HTTP client** — default is curl_multi; implement
-  `HttpClientInterface` to swap in Guzzle, mock, etc.
+  `HttpClientInterface` to swap in a mock or alternative backend.
 - **Retry** — per-test or per-group retry on any failure (useful for
   eventually-consistent endpoints), independent 5xx retry budget.
 - **Circuit breaker** — per-group `maxFailures` skips remaining tests once a
@@ -276,7 +276,7 @@ Implement `Stromcom\HttpSmoke\Reporting\ReporterInterface` (`onStart`,
 ### Custom HTTP client
 
 Implement `Stromcom\HttpSmoke\Http\HttpClientInterface` and register in the
-container via `$config->configureContainer`. Guzzle adapter is planned for v1.1.
+container via `$config->configureContainer`.
 
 ---
 

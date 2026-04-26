@@ -10,13 +10,6 @@ session chains visually, or compare environments. Open shape: standalone static
 HTML+JS, PHP server, or CLI TUI — no commitment yet. (Memory:
 `project_future_json_viewer.md`.)
 
-### v1.1: Guzzle HTTP client adapter
-Currently only `Http\Curl\CurlMultiClient` is shipped. The interface
-(`HttpClientInterface`) is ready. v1.1 will add `Http\Guzzle\GuzzleClient` with
-`guzzlehttp/guzzle` as a `suggest`, opt-in via `smoke.config.php`. Some
-low-level features (custom resolve, raw timing) may be reduced — document on
-arrival.
-
 ## Known limitations
 
 ### Variable / capture substitution in assertion arguments — partially solved
