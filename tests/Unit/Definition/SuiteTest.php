@@ -101,6 +101,22 @@ final class SuiteTest extends TestCase
     }
 
     #[Test]
+    public function head_and_options_register_cases_with_their_methods_and_no_body(): void
+    {
+        $suite = new Suite();
+        $suite->group('g')
+            ->head('/x')->expectStatus(200)
+            ->options('/x')->expectStatus(204);
+
+        [$headCase, $optionsCase] = $suite->getCasesByGroup()['g'];
+
+        self::assertSame(Method::HEAD, $headCase->method);
+        self::assertNull($headCase->body);
+        self::assertSame(Method::OPTIONS, $optionsCase->method);
+        self::assertNull($optionsCase->body);
+    }
+
+    #[Test]
     public function captures_are_attached_to_the_case_they_were_declared_on(): void
     {
         $captureName = 'id';

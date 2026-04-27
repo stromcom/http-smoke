@@ -153,6 +153,16 @@ final class GroupBuilder
         return $this->startRequest(Method::DELETE, $url, $data !== [] ? $data : null);
     }
 
+    public function head(string $url): self
+    {
+        return $this->startRequest(Method::HEAD, $url, null);
+    }
+
+    public function options(string $url): self
+    {
+        return $this->startRequest(Method::OPTIONS, $url, null);
+    }
+
     public function expectStatus(int $code): self
     {
         $this->requirePending()->expectedStatus = $code;
@@ -374,7 +384,7 @@ final class GroupBuilder
     private function requirePending(): RequestBuilder
     {
         if ($this->pending === null) {
-            throw new \LogicException('No pending request — call get()/post()/put()/patch()/delete() first.');
+            throw new \LogicException('No pending request — call get()/post()/put()/patch()/delete()/head()/options() first.');
         }
 
         return $this->pending;

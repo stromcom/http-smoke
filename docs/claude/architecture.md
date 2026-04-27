@@ -70,6 +70,7 @@ via `smoke.config.php` (`extraVariableSources[]`, `extraReporters[]`,
 - **Session segmentation**: `Runner::segment()` walks consecutive cases with same `sessionId`, groups them as session segments. Session segments run sequentially with shared `tempnam()` cookie jar; non-session segments run in parallel chunks of `concurrency`.
 - **Retry**: `retryOnFailure(N, delayMs)` retries on ANY failure (assertion, network, 5xx). `retryOn5xx(N)` is a separate budget that only kicks in if `retryOnFailure === 0` and status >= 500. Both are tracked in `Result::$attempts` / `$totalDurationSeconds`.
 - **Circuit breaker**: each `GroupConfig::$maxFailures` — once exceeded within a group, remaining cases in that group are skipped with reason "Circuit breaker: …".
+- **HTTP methods**: DSL supports `get` / `post` / `put` / `patch` / `delete` / `head` / `options`. `head()` and `options()` always send no body. In `CurlMultiClient`, `HEAD` is dispatched via `CURLOPT_NOBODY` (otherwise curl waits for a body that never arrives); `OPTIONS` uses `CURLOPT_CUSTOMREQUEST`. Body assertions on `HEAD` will simply see an empty response body — this is intentional, not a bug.
 - **JSON report schema** is versioned (`JsonReporter::SCHEMA_VERSION`). Markdown + GitHub-summary reporters consume the JSON via `MarkdownReporter::build($data)` — clean separation, easy to derive other formats.
 
 ## What NOT to assume

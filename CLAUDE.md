@@ -33,8 +33,8 @@ cases: post-deploy smoke checks, scheduled monitoring, CI gates.
 ## Status (as of 2026-04-26)
 
 - Version 0.1 released: package skeleton + full source + tests + CI + docs + examples + bundled dev-server.
-- All checks green: PHPStan max (0 errors), PHP-CS-Fixer (clean), PHPUnit (47 tests, 73 assertions), examples (23/23 against the bundled dev-server).
-- Recent additions: `expectHtmlElement()` (DOM-based HTML assertion), `defaultRetries()` alias, and `ResolvableAssertion` interface so assertion args can resolve `{KEY}` variables at runtime (`RedirectAssertion` is the first user). See `docs/claude/architecture.md` and `roadmap.md`.
+- All checks green: PHPStan max (0 errors), PHP-CS-Fixer (clean), PHPUnit (81 tests, 210 assertions), examples (26/26 against the bundled dev-server).
+- Recent additions: `expectHtmlElement()` (DOM-based HTML assertion), `defaultRetries()` alias, `ResolvableAssertion` interface so assertion args can resolve `{KEY}` variables at runtime (`RedirectAssertion` is the first user), and `head()` / `options()` DSL methods (HEAD uses `CURLOPT_NOBODY`, dev server maps HEAD→GET and answers OPTIONS with `Allow`). See `docs/claude/architecture.md` and `roadmap.md`.
 
 ## ⚠️ Keep this documentation up to date
 

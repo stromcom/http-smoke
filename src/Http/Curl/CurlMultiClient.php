@@ -127,6 +127,8 @@ final class CurlMultiClient implements HttpClientInterface
         $method = $request->method->value;
         if ($method === 'POST') {
             curl_setopt($handle, CURLOPT_POST, true);
+        } elseif ($method === 'HEAD') {
+            curl_setopt($handle, CURLOPT_NOBODY, true);
         } elseif ($method !== 'GET') {
             curl_setopt($handle, CURLOPT_CUSTOMREQUEST, $method);
         }

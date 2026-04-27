@@ -28,6 +28,9 @@ declare(strict_types=1);
  *   GET  /session/dashboard          200 with cookie, 401 without
  *   GET  /session/projects           200 with cookie, 401 without
  *   POST /session/logout             clears cookie, 204
+ *
+ *   HEAD on any GET route reuses the GET handler.
+ *   OPTIONS on any path returns 204 with Allow header.
  */
 
 const AUTH_TOKEN = 'Bearer dev-test-token';
@@ -129,6 +132,18 @@ function read_session_id(): ?string
     }
 
     return null;
+}
+
+if ($method === 'OPTIONS') {
+    header('Allow: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS');
+    header('Access-Control-Allow-Methods: GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS');
+    http_response_code(204);
+    exit;
+}
+
+$origMethod = $method;
+if ($method === 'HEAD') {
+    $method = 'GET';
 }
 
 // ── Routes ───────────────────────────────────────────────────────────────────
@@ -319,4 +334,4 @@ if ($path === '/session/logout' && $method === 'POST') {
 
 // ── Fallback ────────────────────────────────────────────────────────────────
 
-respond_json(['status' => 'error', 'error' => 'route not found', 'path' => $path, 'method' => $method], 404);
+respond_json(['status' => 'error', 'error' => 'route not found', 'path' => $path, 'method' => $origMethod], 404);
