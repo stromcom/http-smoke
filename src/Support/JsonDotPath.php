@@ -11,7 +11,10 @@ final class JsonDotPath
      */
     public static function exists(array $data, string $path): bool
     {
-        return self::traverse($data, $path, $found) && $found;
+        $found = false;
+        self::traverse($data, $path, $found);
+
+        return $found;
     }
 
     /**
@@ -19,9 +22,9 @@ final class JsonDotPath
      */
     public static function get(array $data, string $path): mixed
     {
-        if (!self::traverse($data, $path, $found, $value)) {
-            return null;
-        }
+        $found = false;
+        $value = null;
+        self::traverse($data, $path, $found, $value);
 
         return $found ? $value : null;
     }
@@ -29,25 +32,25 @@ final class JsonDotPath
     /**
      * @param array<array-key, mixed> $data
      */
-    private static function traverse(array $data, string $path, ?bool &$found = null, mixed &$value = null): bool
+    private static function traverse(array $data, string $path, bool &$found, mixed &$value = null): void
     {
         $found = false;
         $value = null;
 
         $tokens = self::tokenize($path);
         if ($tokens === null) {
-            return false;
+            return;
         }
 
         $current = $data;
         foreach ($tokens as $token) {
             if (!is_array($current)) {
-                return true;
+                return;
             }
 
             if ($token instanceof JsonDotPathFunction) {
                 if ($current === []) {
-                    return true;
+                    return;
                 }
                 $keys = array_keys($current);
                 $key = match ($token) {
@@ -57,7 +60,7 @@ final class JsonDotPath
                 };
             } else {
                 if (!array_key_exists($token, $current)) {
-                    return true;
+                    return;
                 }
                 $key = $token;
             }
@@ -67,8 +70,6 @@ final class JsonDotPath
 
         $found = true;
         $value = $current;
-
-        return true;
     }
 
     /**
