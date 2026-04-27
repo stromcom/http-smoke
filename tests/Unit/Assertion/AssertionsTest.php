@@ -11,11 +11,13 @@ use Stromcom\HttpSmoke\Assertion\BodyContainsAssertion;
 use Stromcom\HttpSmoke\Assertion\HeaderContainsAssertion;
 use Stromcom\HttpSmoke\Assertion\HtmlElementAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonAssertion;
+use Stromcom\HttpSmoke\Assertion\JsonCountAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonHasKeysAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonPathAssertion;
 use Stromcom\HttpSmoke\Assertion\RedirectAssertion;
 use Stromcom\HttpSmoke\Assertion\StatusAssertion;
 use Stromcom\HttpSmoke\Http\Response;
+use Stromcom\HttpSmoke\Support\Comparator;
 use Stromcom\HttpSmoke\Variable\Source\ArraySource;
 use Stromcom\HttpSmoke\Variable\VariableResolver;
 
@@ -83,6 +85,40 @@ final class AssertionsTest extends TestCase
         $error = $assertion->evaluate($response);
 
         self::assertNotNull($error);
+    }
+
+    #[Test]
+    #[TestWith(['data.items', 3, Comparator::Equal, true])]
+    #[TestWith(['data.items', 2, Comparator::Equal, false])]
+    #[TestWith(['data.items', 2, Comparator::GreaterThan, true])]
+    #[TestWith(['data.items', 3, Comparator::GreaterThan, false])]
+    #[TestWith(['data.items', 5, Comparator::LessThan, true])]
+    #[TestWith(['data.items', 3, Comparator::LessThan, false])]
+    #[TestWith(['data.items', 3, Comparator::GreaterThanOrEqual, true])]
+    #[TestWith(['data.items', 3, Comparator::LessThanOrEqual, true])]
+    #[TestWith(['data.items', 4, Comparator::NotEqual, true])]
+    public function json_count_assertion_compares_array_size(
+        string $path,
+        int $expected,
+        Comparator $comparator,
+        bool $shouldPass,
+    ): void {
+        $assertion = new JsonCountAssertion($path, $expected, $comparator);
+        $response = self::response(status: 200, body: '{"data":{"items":[1,2,3]}}');
+
+        self::assertErrorMatches($shouldPass, $assertion->evaluate($response));
+    }
+
+    #[Test]
+    public function json_count_assertion_fails_when_target_is_not_array(): void
+    {
+        $assertion = new JsonCountAssertion('data.items', 0);
+        $response = self::response(status: 200, body: '{"data":{"items":"oops"}}');
+
+        $error = $assertion->evaluate($response);
+
+        self::assertNotNull($error);
+        self::assertStringContainsString('expected array', $error);
     }
 
     #[Test]

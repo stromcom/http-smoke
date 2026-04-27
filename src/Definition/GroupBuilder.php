@@ -6,6 +6,7 @@ namespace Stromcom\HttpSmoke\Definition;
 
 use Closure;
 use Stromcom\HttpSmoke\Http\Method;
+use Stromcom\HttpSmoke\Support\Comparator;
 
 final class GroupBuilder
 {
@@ -215,6 +216,35 @@ final class GroupBuilder
         $pending->jsonPathValues[$path] = $value;
 
         return $this;
+    }
+
+    public function expectJsonCount(string $path, int $expected, Comparator $comparator = Comparator::Equal): self
+    {
+        $pending = $this->requirePending();
+        $pending->expectJson = true;
+        $pending->jsonCounts[] = ['path' => $path, 'expected' => $expected, 'comparator' => $comparator];
+
+        return $this;
+    }
+
+    public function expectJsonCountGreaterThan(string $path, int $expected): self
+    {
+        return $this->expectJsonCount($path, $expected, Comparator::GreaterThan);
+    }
+
+    public function expectJsonCountLessThan(string $path, int $expected): self
+    {
+        return $this->expectJsonCount($path, $expected, Comparator::LessThan);
+    }
+
+    public function expectJsonCountAtLeast(string $path, int $expected): self
+    {
+        return $this->expectJsonCount($path, $expected, Comparator::GreaterThanOrEqual);
+    }
+
+    public function expectJsonCountAtMost(string $path, int $expected): self
+    {
+        return $this->expectJsonCount($path, $expected, Comparator::LessThanOrEqual);
     }
 
     public function expectHtmlElement(

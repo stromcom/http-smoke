@@ -33,11 +33,6 @@ Status today:
 Workaround until everything is covered: `expect(Closure)` for dynamic checks
 based on captured state.
 
-### `original/` cleanup
-Per user preference, the `original/` reference dump stays until the first
-release ships, then gets removed. Don't lean on it for ongoing work — it's
-historical context, not the source of truth.
-
 ### Windows-only quirks observed during development
 - `bash` background commands sometimes don't capture `php` stdout to the output
   file. Use `> /tmp/file.txt 2>&1` redirection explicitly or run synchronously.

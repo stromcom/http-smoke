@@ -11,6 +11,7 @@ use Stromcom\HttpSmoke\Assertion\CallbackAssertion;
 use Stromcom\HttpSmoke\Assertion\HeaderContainsAssertion;
 use Stromcom\HttpSmoke\Assertion\HtmlElementAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonAssertion;
+use Stromcom\HttpSmoke\Assertion\JsonCountAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonHasKeysAssertion;
 use Stromcom\HttpSmoke\Assertion\JsonPathAssertion;
 use Stromcom\HttpSmoke\Assertion\RedirectAssertion;
@@ -20,6 +21,7 @@ use Stromcom\HttpSmoke\Capture\HeaderCapture;
 use Stromcom\HttpSmoke\Capture\JsonPathCapture;
 use Stromcom\HttpSmoke\Http\Method;
 use Stromcom\HttpSmoke\Http\Response;
+use Stromcom\HttpSmoke\Support\Comparator;
 
 final class RequestBuilder
 {
@@ -61,6 +63,9 @@ final class RequestBuilder
 
     /** @var array<string, mixed> */
     public array $jsonPathValues = [];
+
+    /** @var list<array{path: string, expected: int, comparator: Comparator}> */
+    public array $jsonCounts = [];
 
     public ?string $bodyContains = null;
 
@@ -113,6 +118,10 @@ final class RequestBuilder
 
         foreach ($this->jsonPathValues as $path => $value) {
             $assertions[] = new JsonPathAssertion($path, $value);
+        }
+
+        foreach ($this->jsonCounts as $count) {
+            $assertions[] = new JsonCountAssertion($count['path'], $count['expected'], $count['comparator']);
         }
 
         if ($this->headerName !== null && $this->headerContains !== null) {

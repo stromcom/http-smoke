@@ -66,7 +66,6 @@ Useful options when iterating:
 
 ## Git / repo hygiene
 
-- `original/` is the legacy reference dump from the project this was extracted from. Read-only — do not edit. To be removed in/after the first release per user preference.
 - `.gitignore` already covers `vendor/`, `composer.lock`, caches, IDE folders.
 - This repo is **not yet a git repo** at the time of writing — the user said "init when ready". Don't `git init` proactively.
 
@@ -80,6 +79,5 @@ tests/Integration/          # integration tests + fixtures/server.php
 examples/                   # bundled demo (dev-server + ready-to-run definitions)
 docs/                       # user docs (extending) + GitHub Action template
 docs/claude/                # this folder — orientation for Claude
-original/                   # legacy reference (delete after 1.0)
 .github/workflows/ci.yml    # CI for the package itself
 ```
