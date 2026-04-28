@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Stromcom\HttpSmoke\Definition;
 
+use Stromcom\HttpSmoke\Exception\VariableNotFoundException;
+use Stromcom\HttpSmoke\Variable\VariableResolver;
+
 final class Suite
 {
     /** @var array<string, GroupConfig> */
@@ -16,6 +19,37 @@ final class Suite
     private array $defaultHeaders = [];
 
     private bool $defaultAsJson = false;
+
+    public function __construct(private readonly ?VariableResolver $variables = null) {}
+
+    /**
+     * Read a variable from the merged variable sources (.env, smokeHttp.json,
+     * OS env, CLI overrides). Returns null when the variable is not defined or
+     * when no resolver is wired (e.g. unit-test construction).
+     *
+     * Use this when you need the value at config-build time — for example to
+     * include it in a JSON request body, where `{KEY}` placeholder substitution
+     * does not run.
+     */
+    public function variable(string $name): ?string
+    {
+        return $this->variables?->get($name);
+    }
+
+    /**
+     * Same as {@see variable()}, but throws {@see VariableNotFoundException}
+     * when the variable is missing. Use when the test cannot run meaningfully
+     * without the value.
+     */
+    public function variableOrFail(string $name): string
+    {
+        $value = $this->variable($name);
+        if ($value === null) {
+            throw VariableNotFoundException::for($name);
+        }
+
+        return $value;
+    }
 
     public function header(string $name, ?string $value): self
     {

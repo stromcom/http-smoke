@@ -9,7 +9,10 @@ use PHPUnit\Framework\TestCase;
 use Stromcom\HttpSmoke\Assertion\HtmlElementAssertion;
 use Stromcom\HttpSmoke\Assertion\StatusAssertion;
 use Stromcom\HttpSmoke\Definition\Suite;
+use Stromcom\HttpSmoke\Exception\VariableNotFoundException;
 use Stromcom\HttpSmoke\Http\Method;
+use Stromcom\HttpSmoke\Variable\Source\ArraySource;
+use Stromcom\HttpSmoke\Variable\VariableResolver;
 
 final class SuiteTest extends TestCase
 {
@@ -114,6 +117,46 @@ final class SuiteTest extends TestCase
         self::assertNull($headCase->body);
         self::assertSame(Method::OPTIONS, $optionsCase->method);
         self::assertNull($optionsCase->body);
+    }
+
+    #[Test]
+    public function variable_returns_value_from_resolver_or_null_when_absent(): void
+    {
+        $resolver = new VariableResolver();
+        $resolver->addSource(new ArraySource(['PARTNER_ID' => '42']));
+
+        $suite = new Suite($resolver);
+
+        self::assertSame('42', $suite->variable('PARTNER_ID'));
+        self::assertNull($suite->variable('UNKNOWN'));
+    }
+
+    #[Test]
+    public function variable_returns_null_when_no_resolver_is_wired(): void
+    {
+        $suite = new Suite();
+
+        self::assertNull($suite->variable('PARTNER_ID'));
+    }
+
+    #[Test]
+    public function variable_or_fail_throws_when_variable_is_missing(): void
+    {
+        $suite = new Suite(new VariableResolver());
+
+        $this->expectException(VariableNotFoundException::class);
+        $suite->variableOrFail('PARTNER_ID');
+    }
+
+    #[Test]
+    public function variable_or_fail_returns_value_when_present(): void
+    {
+        $resolver = new VariableResolver();
+        $resolver->addSource(new ArraySource(['PARTNER_ID' => '7']));
+
+        $suite = new Suite($resolver);
+
+        self::assertSame('7', $suite->variableOrFail('PARTNER_ID'));
     }
 
     #[Test]

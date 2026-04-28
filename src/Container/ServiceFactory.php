@@ -60,7 +60,9 @@ final class ServiceFactory
             $config->userAgent,
         ));
 
-        $container->set(Suite::class, static fn(): Suite => new Suite());
+        $container->set(Suite::class, static fn(Container $c): Suite => new Suite(
+            $c->getTyped(VariableResolver::class),
+        ));
 
         $container->set(ConfigDiscovery::class, static fn(): ConfigDiscovery => new ConfigDiscovery());
 
